@@ -1,18 +1,8 @@
 import { info, setFailed, setOutput } from '@actions/core'
-import {
-  RegExpMatcher,
-  TextCensor,
-  englishDataset,
-  englishRecommendedTransformers,
-} from 'obscenity'
-import { getInput, getInputAsArray } from './utils/ActionUtils'
-import { split } from './utils/ArrayUtils'
-import {
-  isWorkspaceEmpty,
-  readContent,
-  searchFiles,
-  writeContent,
-} from './utils/FileUtils'
+import { RegExpMatcher, TextCensor, englishDataset, englishRecommendedTransformers } from 'obscenity'
+import { getInput, getInputAsArray } from './utils/ActionUtils.js'
+import { split } from './utils/ArrayUtils.js'
+import { isWorkspaceEmpty, readContent, searchFiles, writeContent } from './utils/FileUtils.js'
 
 async function run() {
   try {
@@ -49,18 +39,22 @@ async function run() {
 
     files.forEach((file) => {
       info(`Processing: ${file}`)
-
-      let content = readContent(file)
-
-      const input = content
-      const matches = matcher.getAllMatches(input)
-      const newContent = censor.applyTo(input, matches)
-
-      if (content != newContent) {
-        modifiedFiles++
+      try {
+        let content = readContent(file)
+        const matches = matcher.getAllMatches(content)
+        const chicken = censor.applyTo(content, matches)
+        info('Found some swear wordsss!!!!! BUH OH! UH OH!!!!!')
+        if (matches.length > 0) {
+          info('You said: ' + matches.map((match) => content.substring(match.startIndex, match.endIndex + 1)).join(', ') + '!!!')
+          if (content != chicken) {
+            modifiedFiles++
+            info(`newContent: ${chicken}`)
+            writeContent(file, chicken)
+          }
+        }
+      } catch (error) {
+        info(`Error reading file: ${file}`)
       }
-
-      writeContent(file, newContent)
     })
 
     info('Done. All files checked')
